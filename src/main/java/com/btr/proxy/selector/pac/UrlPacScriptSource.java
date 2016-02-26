@@ -1,8 +1,5 @@
 package com.btr.proxy.selector.pac;
 
-import com.btr.proxy.util.Logger;
-import com.btr.proxy.util.Logger.LogLevel;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -14,6 +11,9 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+import com.btr.proxy.util.Logger;
+import com.btr.proxy.util.Logger.LogLevel;
 
 /*****************************************************************************
  * Script source that will load the content of a PAC file from an webserver.
@@ -40,8 +40,8 @@ public class UrlPacScriptSource implements PacScriptSource {
 	
 	public UrlPacScriptSource(String url) {
 		super();
-		expireAtMillis = 0;
-		scriptUrl = url;
+		this.expireAtMillis = 0;
+		this.scriptUrl = url;
 	}
 
 	/*************************************************************************
@@ -50,25 +50,25 @@ public class UrlPacScriptSource implements PacScriptSource {
 	 ************************************************************************/
 
 	public synchronized String getScriptContent() throws IOException {
-		if (scriptContent == null || 
-				(expireAtMillis > 0 
-						&& expireAtMillis < System.currentTimeMillis())) {
+		if (this.scriptContent == null || 
+				(this.expireAtMillis > 0 
+						&& this.expireAtMillis < System.currentTimeMillis())) {
 			try {
 				// Reset it again with next download we should get a new expire info
-				expireAtMillis = 0;   
+				this.expireAtMillis = 0;   
 				
-				if (scriptUrl.startsWith("file:/") || scriptUrl.indexOf(":/") == -1) {
-					scriptContent = readPacFileContent(scriptUrl);
+				if (this.scriptUrl.startsWith("file:/") || this.scriptUrl.indexOf(":/") == -1) {
+					this.scriptContent = readPacFileContent(this.scriptUrl);
 				} else {
-					scriptContent = downloadPacContent(scriptUrl);
+					this.scriptContent = downloadPacContent(this.scriptUrl);
 				}
 			} catch (IOException e) {
-				Logger.log(getClass(), LogLevel.ERROR, "Loading script failed from: {0} with error {1}", scriptUrl, e);
-				scriptContent = "";
+				Logger.log(getClass(), LogLevel.ERROR, "Loading script failed from: {0} with error {1}", this.scriptUrl, e);
+				this.scriptContent = "";
 				throw e;
 			}
 		}
-		return scriptContent;
+		return this.scriptContent;
 	}
 	
 	/*************************************************************************
@@ -126,12 +126,10 @@ public class UrlPacScriptSource implements PacScriptSource {
 				throw new IOException("Server returned: "+con.getResponseCode()+" "+con.getResponseMessage());
 			}
 			// Read expire date.
-			expireAtMillis = con.getExpiration();
+			this.expireAtMillis = con.getExpiration();
 
 			BufferedReader r = getReader(con);
 			String result = readAllContent(r);
-			Logger.log(UrlPacScriptSource.class, LogLevel.TRACE,
-					"Pac File Content \n-------------------------------\n{0}\n----------------------------\n", result);
 			r.close();
 			return result;
 		} finally {
@@ -247,7 +245,7 @@ public class UrlPacScriptSource implements PacScriptSource {
 	 **************************************************************************/
 	@Override
 	public String toString() {
-		return scriptUrl;
+		return this.scriptUrl;
 	}
 
 	/*************************************************************************
