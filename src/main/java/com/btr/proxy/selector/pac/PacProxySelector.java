@@ -1,9 +1,5 @@
 package com.btr.proxy.selector.pac;
 
-import com.btr.proxy.util.Logger;
-import com.btr.proxy.util.Logger.LogLevel;
-import com.btr.proxy.util.ProxyUtil;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -12,6 +8,9 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import com.btr.proxy.util.Logger;
+import com.btr.proxy.util.Logger.LogLevel;
+import com.btr.proxy.util.ProxyUtil;
 
 
 /*****************************************************************************
@@ -67,14 +66,14 @@ public class PacProxySelector extends ProxySelector {
 	
 	private void selectEngine(PacScriptSource pacSource) {
 		try {
-			if (JAVAX_PARSER) {
+			if (this.JAVAX_PARSER) {
 				Logger.log(getClass(), LogLevel.INFO,
 						"Using javax.script JavaScript engine.");
-				pacScriptParser = new JavaxPacScriptParser(pacSource);
+				this.pacScriptParser = new JavaxPacScriptParser(pacSource);
 			} else {
 				Logger.log(getClass(), LogLevel.INFO,
 						"Using Rhino JavaScript engine.");
-				pacScriptParser = new RhinoPacScriptParser(pacSource);
+				this.pacScriptParser = new RhinoPacScriptParser(pacSource);
 			}
 		} catch (Exception e) {
 			Logger.log(getClass(), LogLevel.ERROR, "PAC parser error.", e);
@@ -119,19 +118,13 @@ public class PacProxySelector extends ProxySelector {
 	 * @param uri <code>URI</code> to be evaluated.
 	 * @return <code>Proxy</code>-object list as result of the evaluation.
 	 ************************************************************************/
-	
+
 	private List<Proxy> findProxy(URI uri) {
 		try {
 			List<Proxy> proxies = new ArrayList<Proxy>();
-			String parseResult = pacScriptParser.evaluate(uri.toString(),
+			String parseResult = this.pacScriptParser.evaluate(uri.toString(),
 					uri.getHost());
-			Logger.log(getClass(), LogLevel.TRACE, "Proxies for uri {0} -> {1}", uri, parseResult);
-			String[] proxyDefinitions;
-			if (parseResult != null) {
-				proxyDefinitions = parseResult.split("[;]");
-			}else{
-				proxyDefinitions = new String[ ]{"NULL"};
-			}
+			String[] proxyDefinitions = parseResult.split("[;]");
 			for (String proxyDef : proxyDefinitions) {
 				if (proxyDef.trim().length() > 0) {
 					proxies.add(buildProxyFromPacResult(proxyDef));
@@ -152,7 +145,7 @@ public class PacProxySelector extends ProxySelector {
 	 ************************************************************************/
 
 	private Proxy buildProxyFromPacResult(String pacResult) {
-		if (pacResult == null || pacResult.trim().equalsIgnoreCase("null") || pacResult.trim().length() < 6) {
+		if (pacResult == null || pacResult.trim().length() < 6) {
 			return Proxy.NO_PROXY;
 		}
 		String proxyDef = pacResult.trim();
